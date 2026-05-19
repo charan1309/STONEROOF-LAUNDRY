@@ -20,6 +20,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminAction,
+  AdminActionResult,
+  AnnouncementInput,
+  AnnouncementResponse,
   HealthStatus,
   Machine,
   MachineSummary,
@@ -49,7 +53,6 @@ export const getHealthCheckUrl = () => {
 }
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const healthCheck = async ( options?: RequestInit): Promise<HealthStatus> => {
@@ -637,5 +640,295 @@ export const useLeaveQueue = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getLeaveQueueMutationOptions(options));
+    }
+
+export const getGetAnnouncementUrl = () => {
+
+
+
+
+  return `/api/announcement`
+}
+
+/**
+ * @summary Get the active maintenance announcement
+ */
+export const getAnnouncement = async ( options?: RequestInit): Promise<AnnouncementResponse> => {
+
+  return customFetch<AnnouncementResponse>(getGetAnnouncementUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAnnouncementQueryKey = () => {
+    return [
+    `/api/announcement`
+    ] as const;
+    }
+
+
+export const getGetAnnouncementQueryOptions = <TData = Awaited<ReturnType<typeof getAnnouncement>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnnouncement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAnnouncementQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnnouncement>>> = ({ signal }) => getAnnouncement({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAnnouncement>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAnnouncementQueryResult = NonNullable<Awaited<ReturnType<typeof getAnnouncement>>>
+export type GetAnnouncementQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the active maintenance announcement
+ */
+
+export function useGetAnnouncement<TData = Awaited<ReturnType<typeof getAnnouncement>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAnnouncement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAnnouncementQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSetAnnouncementUrl = () => {
+
+
+
+
+  return `/api/announcement`
+}
+
+/**
+ * @summary Set or clear maintenance announcement (admin only)
+ */
+export const setAnnouncement = async (announcementInput: AnnouncementInput, options?: RequestInit): Promise<AnnouncementResponse> => {
+
+  return customFetch<AnnouncementResponse>(getSetAnnouncementUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      announcementInput,)
+  }
+);}
+
+
+
+
+export const getSetAnnouncementMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setAnnouncement>>, TError,{data: BodyType<AnnouncementInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setAnnouncement>>, TError,{data: BodyType<AnnouncementInput>}, TContext> => {
+
+const mutationKey = ['setAnnouncement'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setAnnouncement>>, {data: BodyType<AnnouncementInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setAnnouncement(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetAnnouncementMutationResult = NonNullable<Awaited<ReturnType<typeof setAnnouncement>>>
+    export type SetAnnouncementMutationBody = BodyType<AnnouncementInput>
+    export type SetAnnouncementMutationError = ErrorType<void>
+
+    /**
+ * @summary Set or clear maintenance announcement (admin only)
+ */
+export const useSetAnnouncement = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setAnnouncement>>, TError,{data: BodyType<AnnouncementInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setAnnouncement>>,
+        TError,
+        {data: BodyType<AnnouncementInput>},
+        TContext
+      > => {
+      return useMutation(getSetAnnouncementMutationOptions(options));
+    }
+
+export const getAdminResetMachinesUrl = () => {
+
+
+
+
+  return `/api/admin/reset-machines`
+}
+
+/**
+ * @summary Reset all machines to available
+ */
+export const adminResetMachines = async (adminAction: AdminAction, options?: RequestInit): Promise<AdminActionResult> => {
+
+  return customFetch<AdminActionResult>(getAdminResetMachinesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminAction,)
+  }
+);}
+
+
+
+
+export const getAdminResetMachinesMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminResetMachines>>, TError,{data: BodyType<AdminAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminResetMachines>>, TError,{data: BodyType<AdminAction>}, TContext> => {
+
+const mutationKey = ['adminResetMachines'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminResetMachines>>, {data: BodyType<AdminAction>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  adminResetMachines(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminResetMachinesMutationResult = NonNullable<Awaited<ReturnType<typeof adminResetMachines>>>
+    export type AdminResetMachinesMutationBody = BodyType<AdminAction>
+    export type AdminResetMachinesMutationError = ErrorType<void>
+
+    /**
+ * @summary Reset all machines to available
+ */
+export const useAdminResetMachines = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminResetMachines>>, TError,{data: BodyType<AdminAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminResetMachines>>,
+        TError,
+        {data: BodyType<AdminAction>},
+        TContext
+      > => {
+      return useMutation(getAdminResetMachinesMutationOptions(options));
+    }
+
+export const getAdminClearQueueUrl = () => {
+
+
+
+
+  return `/api/admin/clear-queue`
+}
+
+/**
+ * @summary Clear the entire waiting queue
+ */
+export const adminClearQueue = async (adminAction: AdminAction, options?: RequestInit): Promise<AdminActionResult> => {
+
+  return customFetch<AdminActionResult>(getAdminClearQueueUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      adminAction,)
+  }
+);}
+
+
+
+
+export const getAdminClearQueueMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminClearQueue>>, TError,{data: BodyType<AdminAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminClearQueue>>, TError,{data: BodyType<AdminAction>}, TContext> => {
+
+const mutationKey = ['adminClearQueue'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminClearQueue>>, {data: BodyType<AdminAction>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  adminClearQueue(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminClearQueueMutationResult = NonNullable<Awaited<ReturnType<typeof adminClearQueue>>>
+    export type AdminClearQueueMutationBody = BodyType<AdminAction>
+    export type AdminClearQueueMutationError = ErrorType<void>
+
+    /**
+ * @summary Clear the entire waiting queue
+ */
+export const useAdminClearQueue = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminClearQueue>>, TError,{data: BodyType<AdminAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminClearQueue>>,
+        TError,
+        {data: BodyType<AdminAction>},
+        TContext
+      > => {
+      return useMutation(getAdminClearQueueMutationOptions(options));
     }
 

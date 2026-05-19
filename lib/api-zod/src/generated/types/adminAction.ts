@@ -6,10 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface QueueEntry {
-  id: string;
-  userName: string;
-  userRoom: string;
-  joinedAt: string;
-  position: number;
+export interface AdminAction {
+  adminCode: string;
 }

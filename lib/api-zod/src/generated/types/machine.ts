@@ -15,10 +15,7 @@ export interface Machine {
   currentUserName?: string | null;
   /** @nullable */
   currentUserRoom?: string | null;
-  /**
-     * ISO timestamp when the current wash session ends
-     * @nullable
-     */
+  /** @nullable */
   sessionEndTime?: string | null;
   /** @nullable */
   durationMinutes?: number | null;

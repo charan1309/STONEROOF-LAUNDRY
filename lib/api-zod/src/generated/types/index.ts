@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminAction';
+export * from './adminActionResult';
+export * from './announcementInput';
+export * from './announcementResponse';
 export * from './healthStatus';
 export * from './machine';
 export * from './machineStatus';

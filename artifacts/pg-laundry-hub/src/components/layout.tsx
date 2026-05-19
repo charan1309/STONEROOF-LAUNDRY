@@ -3,8 +3,8 @@ import { useUserIdentity } from "@/hooks/use-user-identity";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
-import { WashingMachine, List } from "lucide-react";
-import { useGetMachinesSummary, useGetQueue } from "@workspace/api-client-react";
+import { WashingMachine, List, ShieldCheck, X, Megaphone } from "lucide-react";
+import { useGetMachinesSummary, useGetQueue, useGetAnnouncement } from "@workspace/api-client-react";
 import { toast } from "sonner";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -13,8 +13,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const { data: summary } = useGetMachinesSummary({ query: { refetchInterval: 10000 } });
   const { data: queue } = useGetQueue({ query: { refetchInterval: 10000 } });
+  const { data: announcement } = useGetAnnouncement({ query: { refetchInterval: 15000 } });
 
   const allBusy = summary ? summary.available === 0 : false;
+  const activeAnnouncement = announcement?.isActive ? announcement.message : null;
+  const [announcementDismissed, setAnnouncementDismissed] = useState<string | null>(null);
+  const showBanner = !!activeAnnouncement && activeAnnouncement !== announcementDismissed;
 
   const notifiedRef = useRef(false);
   const prevAvailableRef = useRef<number | null>(null);
@@ -67,6 +71,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background pb-16">
+      {showBanner && (
+        <div className="bg-amber-500 text-white px-4 py-2 flex items-start gap-2 text-sm">
+          <Megaphone className="w-4 h-4 shrink-0 mt-0.5" />
+          <p className="flex-1 font-medium leading-snug">{activeAnnouncement}</p>
+          <button
+            onClick={() => setAnnouncementDismissed(activeAnnouncement)}
+            className="shrink-0 opacity-80 hover:opacity-100 transition-opacity"
+            aria-label="Dismiss"
+            data-testid="button-dismiss-banner"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b">
         <div className="px-4 h-14 flex items-center justify-between max-w-md mx-auto w-full">
           <div className="font-bold text-lg tracking-tight">PG Laundry Hub</div>
@@ -84,7 +103,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex justify-around max-w-md mx-auto">
           <Link
             href="/"
-            className={`flex flex-col items-center py-3 px-6 flex-1 transition-colors ${
+            className={`flex flex-col items-center py-3 px-4 flex-1 transition-colors ${
               location === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
             data-testid="nav-dashboard"
@@ -94,7 +113,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </Link>
           <Link
             href="/queue"
-            className={`flex flex-col items-center py-3 px-6 flex-1 transition-colors relative ${
+            className={`flex flex-col items-center py-3 px-4 flex-1 transition-colors relative ${
               location === "/queue" ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
             data-testid="nav-queue"
@@ -106,6 +125,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               )}
             </div>
             <span className="text-[10px] font-medium">Waiting Line</span>
+          </Link>
+          <Link
+            href="/admin"
+            className={`flex flex-col items-center py-3 px-4 flex-1 transition-colors ${
+              location === "/admin" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            }`}
+            data-testid="nav-admin"
+          >
+            <ShieldCheck className="h-5 w-5 mb-1" />
+            <span className="text-[10px] font-medium">Admin</span>
           </Link>
         </div>
       </nav>

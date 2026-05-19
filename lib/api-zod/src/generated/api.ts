@@ -9,7 +9,6 @@ import * as zod from 'zod';
 
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -26,7 +25,7 @@ export const GetMachinesResponseItem = zod.object({
   "status": zod.enum(['available', 'in_use', 'broken']),
   "currentUserName": zod.string().nullish(),
   "currentUserRoom": zod.string().nullish(),
-  "sessionEndTime": zod.string().nullish().describe('ISO timestamp when the current wash session ends'),
+  "sessionEndTime": zod.string().nullish(),
   "durationMinutes": zod.number().nullish()
 })
 export const GetMachinesResponse = zod.array(GetMachinesResponseItem)
@@ -56,7 +55,7 @@ export const GetMachineResponse = zod.object({
   "status": zod.enum(['available', 'in_use', 'broken']),
   "currentUserName": zod.string().nullish(),
   "currentUserRoom": zod.string().nullish(),
-  "sessionEndTime": zod.string().nullish().describe('ISO timestamp when the current wash session ends'),
+  "sessionEndTime": zod.string().nullish(),
   "durationMinutes": zod.number().nullish()
 })
 
@@ -82,7 +81,7 @@ export const UpdateMachineResponse = zod.object({
   "status": zod.enum(['available', 'in_use', 'broken']),
   "currentUserName": zod.string().nullish(),
   "currentUserRoom": zod.string().nullish(),
-  "sessionEndTime": zod.string().nullish().describe('ISO timestamp when the current wash session ends'),
+  "sessionEndTime": zod.string().nullish(),
   "durationMinutes": zod.number().nullish()
 })
 
@@ -94,7 +93,7 @@ export const GetQueueResponseItem = zod.object({
   "id": zod.string(),
   "userName": zod.string(),
   "userRoom": zod.string(),
-  "joinedAt": zod.string().describe('ISO timestamp'),
+  "joinedAt": zod.string(),
   "position": zod.number()
 })
 export const GetQueueResponse = zod.array(GetQueueResponseItem)
@@ -114,6 +113,55 @@ export const JoinQueueBody = zod.object({
  */
 export const LeaveQueueParams = zod.object({
   "id": zod.coerce.string()
+})
+
+
+/**
+ * @summary Get the active maintenance announcement
+ */
+export const GetAnnouncementResponse = zod.object({
+  "message": zod.string().nullable(),
+  "isActive": zod.boolean()
+})
+
+
+/**
+ * @summary Set or clear maintenance announcement (admin only)
+ */
+export const SetAnnouncementBody = zod.object({
+  "adminCode": zod.string(),
+  "message": zod.string().nullish().describe('Set to null or empty to clear the announcement')
+})
+
+export const SetAnnouncementResponse = zod.object({
+  "message": zod.string().nullable(),
+  "isActive": zod.boolean()
+})
+
+
+/**
+ * @summary Reset all machines to available
+ */
+export const AdminResetMachinesBody = zod.object({
+  "adminCode": zod.string()
+})
+
+export const AdminResetMachinesResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Clear the entire waiting queue
+ */
+export const AdminClearQueueBody = zod.object({
+  "adminCode": zod.string()
+})
+
+export const AdminClearQueueResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
 })
 
 

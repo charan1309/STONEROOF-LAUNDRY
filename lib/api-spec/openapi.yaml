@@ -14,13 +14,16 @@ tags:
     description: Washing machine management
   - name: queue
     description: Virtual waiting queue
+  - name: announcement
+    description: Maintenance announcement banner
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -51,7 +54,7 @@ paths:
       summary: Get machine status summary
       responses:
         "200":
-          description: Summary of machine statuses
+          description: Summary
           content:
             application/json:
               schema:
@@ -158,6 +161,81 @@ paths:
         "404":
           description: Not found
 
+  /announcement:
+    get:
+      operationId: getAnnouncement
+      tags: [announcement]
+      summary: Get the active maintenance announcement
+      responses:
+        "200":
+          description: Active announcement or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnnouncementResponse"
+
+    put:
+      operationId: setAnnouncement
+      tags: [announcement]
+      summary: Set or clear maintenance announcement (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnnouncementResponse"
+        "403":
+          description: Forbidden
+
+  /admin/reset-machines:
+    post:
+      operationId: adminResetMachines
+      tags: [admin]
+      summary: Reset all machines to available
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAction"
+      responses:
+        "200":
+          description: All machines reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminActionResult"
+        "403":
+          description: Forbidden
+
+  /admin/clear-queue:
+    post:
+      operationId: adminClearQueue
+      tags: [admin]
+      summary: Clear the entire waiting queue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAction"
+      responses:
+        "200":
+          description: Queue cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminActionResult"
+        "403":
+          description: Forbidden
+
 components:
   schemas:
     HealthStatus:
@@ -165,8 +243,7 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
     Machine:
       type: object
@@ -185,7 +262,6 @@ components:
           type: ["string", "null"]
         sessionEndTime:
           type: ["string", "null"]
-          description: ISO timestamp when the current wash session ends
         durationMinutes:
           type: ["integer", "null"]
 
@@ -229,7 +305,6 @@ components:
           type: string
         joinedAt:
           type: string
-          description: ISO timestamp
         position:
           type: integer
 
@@ -240,4 +315,39 @@ components:
         userName:
           type: string
         userRoom:
+          type: string
+
+    AnnouncementResponse:
+      type: object
+      required: [message, isActive]
+      properties:
+        message:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+
+    AnnouncementInput:
+      type: object
+      required: [adminCode]
+      properties:
+        adminCode:
+          type: string
+        message:
+          type: ["string", "null"]
+          description: Set to null or empty to clear the announcement
+
+    AdminAction:
+      type: object
+      required: [adminCode]
+      properties:
+        adminCode:
+          type: string
+
+    AdminActionResult:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
           type: string

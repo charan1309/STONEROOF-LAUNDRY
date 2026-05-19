@@ -26,10 +26,7 @@ export interface Machine {
   currentUserName?: string | null;
   /** @nullable */
   currentUserRoom?: string | null;
-  /**
-     * ISO timestamp when the current wash session ends
-     * @nullable
-     */
+  /** @nullable */
   sessionEndTime?: string | null;
   /** @nullable */
   durationMinutes?: number | null;
@@ -67,7 +64,6 @@ export interface QueueEntry {
   id: string;
   userName: string;
   userRoom: string;
-  /** ISO timestamp */
   joinedAt: string;
   position: number;
 }
@@ -75,5 +71,29 @@ export interface QueueEntry {
 export interface QueueInput {
   userName: string;
   userRoom: string;
+}
+
+export interface AnnouncementResponse {
+  /** @nullable */
+  message: string | null;
+  isActive: boolean;
+}
+
+export interface AnnouncementInput {
+  adminCode: string;
+  /**
+     * Set to null or empty to clear the announcement
+     * @nullable
+     */
+  message?: string | null;
+}
+
+export interface AdminAction {
+  adminCode: string;
+}
+
+export interface AdminActionResult {
+  success: boolean;
+  message: string;
 }
 

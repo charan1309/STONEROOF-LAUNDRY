@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import { Layout } from "@/components/layout";
 import { Dashboard } from "@/pages/dashboard";
 import { Queue } from "@/pages/queue";
+import { Admin } from "@/pages/admin";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,11 @@ function Router() {
       <Route path="/queue">
         <Layout>
           <Queue />
+        </Layout>
+      </Route>
+      <Route path="/admin">
+        <Layout>
+          <Admin />
         </Layout>
       </Route>
       <Route component={NotFound} />
