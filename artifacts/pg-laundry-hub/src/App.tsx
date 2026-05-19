@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import { Layout } from "@/components/layout";
+import { Layout, AdminLayout } from "@/components/layout";
 import { Dashboard } from "@/pages/dashboard";
 import { Queue } from "@/pages/queue";
 import { Admin } from "@/pages/admin";
@@ -24,9 +24,9 @@ function Router() {
         </Layout>
       </Route>
       <Route path="/admin">
-        <Layout>
+        <AdminLayout>
           <Admin />
-        </Layout>
+        </AdminLayout>
       </Route>
       <Route component={NotFound} />
     </Switch>

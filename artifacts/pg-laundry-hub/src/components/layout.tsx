@@ -48,7 +48,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         );
       }
     } else {
-      if (notifiedRef.current && (summary.available === 0 || !myPosition || myPosition.position !== 1)) {
+      if (
+        notifiedRef.current &&
+        (summary.available === 0 || !myPosition || myPosition.position !== 1)
+      ) {
         notifiedRef.current = false;
         toast.dismiss("queue-your-turn");
       }
@@ -142,6 +145,47 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { data: announcement } = useGetAnnouncement({ query: { refetchInterval: 15000 } });
+  const activeAnnouncement = announcement?.isActive ? announcement.message : null;
+  const [announcementDismissed, setAnnouncementDismissed] = useState<string | null>(null);
+  const showBanner = !!activeAnnouncement && activeAnnouncement !== announcementDismissed;
+
+  return (
+    <div className="min-h-[100dvh] flex flex-col bg-background pb-16">
+      {showBanner && (
+        <div className="bg-amber-500 text-white px-4 py-2 flex items-start gap-2 text-sm">
+          <Megaphone className="w-4 h-4 shrink-0 mt-0.5" />
+          <p className="flex-1 font-medium leading-snug">{activeAnnouncement}</p>
+          <button
+            onClick={() => setAnnouncementDismissed(activeAnnouncement)}
+            className="shrink-0 opacity-80 hover:opacity-100 transition-opacity"
+            aria-label="Dismiss"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b">
+        <div className="px-4 h-14 flex items-center justify-between max-w-md mx-auto w-full">
+          <div className="font-bold text-lg tracking-tight">PG Laundry Hub</div>
+          <Link
+            href="/"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Back to app
+          </Link>
+        </div>
+      </header>
+
+      <main className="flex-1 w-full max-w-md mx-auto p-4 flex flex-col">
+        {children}
+      </main>
+    </div>
+  );
+}
+
 function OnboardingModal({
   onSave,
 }: {
@@ -149,6 +193,7 @@ function OnboardingModal({
 }) {
   const [name, setName] = useState("");
   const [room, setRoom] = useState("");
+  const [, setLocation] = useLocation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,6 +245,18 @@ function OnboardingModal({
             Enter Hub
           </Button>
         </form>
+
+        <div className="mt-6 pt-5 border-t border-dashed flex justify-center">
+          <button
+            type="button"
+            onClick={() => setLocation("/admin")}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+            data-testid="button-admin-access"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Admin access
+          </button>
+        </div>
       </div>
     </div>
   );
