@@ -1,0 +1,40 @@
+Create a mobile-first, highly responsive web application named "PG Laundry Hub" designed to manage shared washing machines for a high-density population of 170 users. The app must run cleanly in the browser and be fully compatible with deployment to Vercel.
+
+Follow these explicit architecture and logic guidelines:
+
+1. AUTHENTICATION & IDENTITY (NO ACCOUNTS)
+- Do NOT implement any email/password login, registration screens, or signup flows.
+- When a user opens the app for the very first time, display a prominent, beautiful onboarding screen/modal blocking the app that forces them to input their "Name" and "Room Number".
+- Save these two inputs securely into the browser's `localStorage`. Once saved, this onboarding screen must never show up again for that device. 
+- Show a small "Profile: Name (Room)" indicator text at the top corner of the dashboard so users know who they are logged in as.
+
+2. MACHINE DASHBOARD (REAL-TIME STATUS)
+- Create a visual grid displaying 5 distinct cards representing the washing machines (Machine 1 to Machine 5).
+- Each machine must dynamically track and display the following data elements:
+  * Machine Name (e.g., "Machine 1 (Top Load)")
+  * Current Status (Boldly badge color-coded: "Available" in Green, "In Use" in Red, or "Broken" in Gray).
+  * Current User Name & Room Number (Only visible if the machine is "In Use").
+  * A ticking down visual progress bar and countdown timer (MM:SS) showing exactly how much time is left.
+
+3. WORKFLOW LOGIC & SCENARIOS
+- SCENARIO A (START WASH): If a machine is "Available", show a prominent button called "Start My Wash". Clicking it must open a slide-in bottom drawer or modal containing:
+  * A dropdown/choice picker for Cycle Duration with exactly three choices: 30 minutes, 45 minutes, or 60 minutes.
+  * A text field asking for the "Physical Machine PIN". 
+  * STRICT CODE VALIDATION: Each machine has a hardcoded PIN (Machine 1 = 111, Machine 2 = 222, Machine 3 = 333, Machine 4 = 444, Machine 5 = 555). The submit button must remain disabled OR throw an error toast unless the user inputs the exact correct PIN for that specific machine card.
+  * On successful submit, automatically grab the user's Name and Room from localStorage, calculate the target end time based on the selected duration, set status to "In Use", and initiate the live cloud-ready countdown.
+
+- SCENARIO B (GHOST RESET / CLEARING CLOTHES): If a machine is "In Use", the "Start My Wash" button is hidden. In its place, show a button labeled "Mark Empty / Clear Clothes". 
+  * Clicking this button must instantly wipe the active user data from that machine card and reset its status text back to "Available". (This allows the next user to clear clothes if someone abandons their laundry).
+
+- SCENARIO C (REPROTING FAULTS): Add a small warning icon on each card labeled "Report Issue". Clicking it switches that specific machine's status to "Broken" and locks it out from being started by anyone until someone clicks a hidden/small "Fix Machine" button.
+
+4. VIRTUAL WAITING LIST (QUEUE TAB)
+- Implement a secondary navigation tab at the bottom or top of the screen titled "Waiting Line".
+- If all working machines are "In Use", users can navigate here and click a button called "Join the Line". 
+- When clicked, it automatically reads their name/room from localStorage and pushes them into a vertical list component.
+- The list must display entries sorted strictly by order of arrival (Oldest Timestamp at the top, representing Position #1).
+- Add a clear "Leave Line" button next to each user's row. A user can tap their row to remove themselves from the waitlist once they successfully claim a physical machine upstairs.
+
+5. TECH STACK & LOCAL STORAGE FALLBACK
+- Build the frontend using React, Vite, Tailwind CSS, and Lucide React icons for a beautiful "Gazette/Retro Modern" aesthetic (clean typography, crisp color badging).
+- For data persistence across different user devices, set up an API simulation folder structure. Write clean CRUD mock functions using promises so that it can be easily connected later to a real-time database provider like Supabase or Firebase with zero frontend rewrites.

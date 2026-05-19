@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "PG Laundry Hub"
+version = "1.0.0"
+id = "artifacts/pg-laundry-hub"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22939
+
+[services.development]
+run = "pnpm --filter @workspace/pg-laundry-hub run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pg-laundry-hub", "run", "build" ]
+publicDir = "artifacts/pg-laundry-hub/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22939"
+BASE_PATH = "/"

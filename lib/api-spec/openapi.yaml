@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: PG Laundry Hub API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: machines
+    description: Washing machine management
+  - name: queue
+    description: Virtual waiting queue
 paths:
   /healthz:
     get:
@@ -24,6 +28,136 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /machines:
+    get:
+      operationId: getMachines
+      tags: [machines]
+      summary: List all machines
+      responses:
+        "200":
+          description: List of machines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Machine"
+
+  /machines/summary:
+    get:
+      operationId: getMachinesSummary
+      tags: [machines]
+      summary: Get machine status summary
+      responses:
+        "200":
+          description: Summary of machine statuses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MachineSummary"
+
+  /machines/{id}:
+    get:
+      operationId: getMachine
+      tags: [machines]
+      summary: Get a single machine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Machine found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+        "404":
+          description: Not found
+
+    patch:
+      operationId: updateMachine
+      tags: [machines]
+      summary: Update machine state
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MachineUpdate"
+      responses:
+        "200":
+          description: Updated machine
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+
+  /queue:
+    get:
+      operationId: getQueue
+      tags: [queue]
+      summary: Get the waiting queue
+      responses:
+        "200":
+          description: Queue entries sorted by join time
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QueueEntry"
+
+    post:
+      operationId: joinQueue
+      tags: [queue]
+      summary: Join the waiting queue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueueInput"
+      responses:
+        "201":
+          description: Joined queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueEntry"
+        "400":
+          description: Already in queue
+
+  /queue/{id}:
+    delete:
+      operationId: leaveQueue
+      tags: [queue]
+      summary: Leave the waiting queue
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Removed from queue
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +168,76 @@ components:
       required:
         - status
 
+    Machine:
+      type: object
+      required: [id, name, status]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        status:
+          type: string
+          enum: [available, in_use, broken]
+        currentUserName:
+          type: ["string", "null"]
+        currentUserRoom:
+          type: ["string", "null"]
+        sessionEndTime:
+          type: ["string", "null"]
+          description: ISO timestamp when the current wash session ends
+        durationMinutes:
+          type: ["integer", "null"]
+
+    MachineUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [available, in_use, broken]
+        currentUserName:
+          type: ["string", "null"]
+        currentUserRoom:
+          type: ["string", "null"]
+        sessionEndTime:
+          type: ["string", "null"]
+        durationMinutes:
+          type: ["integer", "null"]
+
+    MachineSummary:
+      type: object
+      required: [total, available, inUse, broken]
+      properties:
+        total:
+          type: integer
+        available:
+          type: integer
+        inUse:
+          type: integer
+        broken:
+          type: integer
+
+    QueueEntry:
+      type: object
+      required: [id, userName, userRoom, joinedAt, position]
+      properties:
+        id:
+          type: string
+        userName:
+          type: string
+        userRoom:
+          type: string
+        joinedAt:
+          type: string
+          description: ISO timestamp
+        position:
+          type: integer
+
+    QueueInput:
+      type: object
+      required: [userName, userRoom]
+      properties:
+        userName:
+          type: string
+        userRoom:
+          type: string
