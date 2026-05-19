@@ -2,14 +2,64 @@ import { Link, useLocation } from "wouter";
 import { useUserIdentity } from "@/hooks/use-user-identity";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Clock, List, WashingMachine } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { WashingMachine, List } from "lucide-react";
+import { useGetMachinesSummary, useGetQueue } from "@workspace/api-client-react";
+import { toast } from "sonner";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, saveUser, isLoading } = useUserIdentity();
   const [location] = useLocation();
 
-  if (isLoading) return <div className="min-h-[100dvh] flex items-center justify-center bg-background">Loading...</div>;
+  const { data: summary } = useGetMachinesSummary({ query: { refetchInterval: 10000 } });
+  const { data: queue } = useGetQueue({ query: { refetchInterval: 10000 } });
+
+  const allBusy = summary ? summary.available === 0 : false;
+
+  const notifiedRef = useRef(false);
+  const prevAvailableRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!user || !summary || !queue) return;
+
+    const myPosition = queue.find(
+      (e) => e.userName === user.name && e.userRoom === user.room
+    );
+
+    const justOpened =
+      prevAvailableRef.current !== null &&
+      prevAvailableRef.current === 0 &&
+      summary.available > 0;
+
+    if (myPosition && myPosition.position === 1 && summary.available > 0) {
+      if (!notifiedRef.current || justOpened) {
+        notifiedRef.current = true;
+        toast.success(
+          `A machine is free, ${user.name}! Head upstairs now — you're first in line.`,
+          {
+            duration: Infinity,
+            id: "queue-your-turn",
+            description: "Go to the dashboard and start your wash before someone else does.",
+          }
+        );
+      }
+    } else {
+      if (notifiedRef.current && (summary.available === 0 || !myPosition || myPosition.position !== 1)) {
+        notifiedRef.current = false;
+        toast.dismiss("queue-your-turn");
+      }
+    }
+
+    prevAvailableRef.current = summary.available;
+  }, [summary, queue, user]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[100dvh] flex items-center justify-center bg-background">
+        Loading...
+      </div>
+    );
+  }
 
   if (!user) {
     return <OnboardingModal onSave={saveUser} />;
@@ -32,18 +82,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <nav className="fixed bottom-0 w-full bg-card border-t z-20 pb-safe">
         <div className="flex justify-around max-w-md mx-auto">
-          <Link 
-            href="/" 
-            className={`flex flex-col items-center py-3 px-6 flex-1 transition-colors ${location === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          <Link
+            href="/"
+            className={`flex flex-col items-center py-3 px-6 flex-1 transition-colors ${
+              location === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            }`}
+            data-testid="nav-dashboard"
           >
             <WashingMachine className="h-5 w-5 mb-1" />
             <span className="text-[10px] font-medium">Dashboard</span>
           </Link>
-          <Link 
-            href="/queue" 
-            className={`flex flex-col items-center py-3 px-6 flex-1 transition-colors ${location === "/queue" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          <Link
+            href="/queue"
+            className={`flex flex-col items-center py-3 px-6 flex-1 transition-colors relative ${
+              location === "/queue" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            }`}
+            data-testid="nav-queue"
           >
-            <List className="h-5 w-5 mb-1" />
+            <div className="relative">
+              <List className="h-5 w-5 mb-1" />
+              {allBusy && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              )}
+            </div>
             <span className="text-[10px] font-medium">Waiting Line</span>
           </Link>
         </div>
@@ -52,7 +113,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function OnboardingModal({ onSave }: { onSave: (u: { name: string, room: string }) => void }) {
+function OnboardingModal({
+  onSave,
+}: {
+  onSave: (u: { name: string; room: string }) => void;
+}) {
   const [name, setName] = useState("");
   const [room, setRoom] = useState("");
 
@@ -79,9 +144,9 @@ function OnboardingModal({ onSave }: { onSave: (u: { name: string, room: string 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Your Name</label>
-            <Input 
+            <Input
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Alex"
               className="bg-background"
               data-testid="input-name"
@@ -89,17 +154,17 @@ function OnboardingModal({ onSave }: { onSave: (u: { name: string, room: string 
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Room Number</label>
-            <Input 
+            <Input
               value={room}
-              onChange={e => setRoom(e.target.value)}
+              onChange={(e) => setRoom(e.target.value)}
               placeholder="e.g. 101"
               className="bg-background"
               data-testid="input-room"
             />
           </div>
-          <Button 
-            type="submit" 
-            className="w-full mt-6" 
+          <Button
+            type="submit"
+            className="w-full mt-6"
             disabled={!name.trim() || !room.trim()}
             data-testid="button-enter"
           >
