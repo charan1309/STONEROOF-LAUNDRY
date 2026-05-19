@@ -20,7 +20,7 @@ export function Queue() {
   const allBusy = summary ? summary.available === 0 : false;
   const availableCount = summary?.available ?? 0;
 
-  const sortedQueue = queue?.slice().sort((a, b) => a.position - b.position) || [];
+  const sortedQueue = Array.isArray(queue) ? queue.slice().sort((a, b) => a.position - b.position) : [];
   const amIInLine = user ? sortedQueue.some((q) => q.userName === user.name && q.userRoom === user.room) : false;
   const myEntry = user ? sortedQueue.find((q) => q.userName === user.name && q.userRoom === user.room) : null;
   const imFirst = myEntry?.position === 1;

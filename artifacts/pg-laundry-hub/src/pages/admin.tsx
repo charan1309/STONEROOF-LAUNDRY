@@ -209,9 +209,9 @@ export function Admin() {
     );
   }
 
-  const inUseCount = machines?.filter((m) => m.status === "in_use").length ?? 0;
-  const brokenCount = machines?.filter((m) => m.status === "broken").length ?? 0;
-  const queueCount = queue?.length ?? 0;
+  const inUseCount = Array.isArray(machines) ? machines.filter((m) => m.status === "in_use").length : 0;
+  const brokenCount = Array.isArray(machines) ? machines.filter((m) => m.status === "broken").length : 0;
+  const queueCount = Array.isArray(queue) ? queue.length : 0;
   const activeAnnouncement = announcement?.isActive ? announcement.message : null;
 
   return (
