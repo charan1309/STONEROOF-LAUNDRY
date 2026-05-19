@@ -24,7 +24,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const prevAvailableRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!user || !summary || !queue) return;
+    if (!user || !summary || !queue || !Array.isArray(queue)) return;
 
     const myPosition = queue.find(
       (e) => e.userName === user.name && e.userRoom === user.room
