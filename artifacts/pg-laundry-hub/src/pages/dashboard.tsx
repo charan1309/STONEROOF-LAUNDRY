@@ -63,7 +63,7 @@ export function Dashboard() {
     );
   }
 
-  const sortedMachines = machines?.slice().sort((a, b) => a.id - b.id) || [];
+  const sortedMachines = Array.isArray(machines) ? machines.slice().sort((a, b) => a.id - b.id) : [];
 
   return (
     <div className="space-y-6 pb-6">
