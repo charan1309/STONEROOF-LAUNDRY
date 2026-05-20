@@ -29,6 +29,40 @@ const GRACE_PERIOD_MS = 2 * 60 * 1000;
 
 const CLEARED_ALERTS_KEY = "pg_laundry_cleared_alerts";
 
+function startAlarmSound(): () => void {
+  let stopped = false;
+  let ctx: AudioContext | null = null;
+
+  try {
+    ctx = new AudioContext();
+  } catch {
+    return () => {};
+  }
+
+  const beep = () => {
+    if (stopped || !ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "square";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.18);
+  };
+
+  beep();
+  const interval = setInterval(beep, 700);
+
+  return () => {
+    stopped = true;
+    clearInterval(interval);
+    ctx?.close();
+  };
+}
+
 function getClearedAlerts(): { machineId: number; clearedBy: string; seenAt: number }[] {
   try {
     const raw = localStorage.getItem(CLEARED_ALERTS_KEY);
@@ -144,6 +178,7 @@ function MachineCard({ machine, userMachineCount }: { machine: Machine; userMach
   const showMarkEmptyToOwner = isInUse && isOwner;
 
   const ownerExpiredRef = useRef(false);
+  const alarmStopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (isInUse && machine.sessionEndTime) {
@@ -159,6 +194,20 @@ function MachineCard({ machine, userMachineCount }: { machine: Machine; userMach
 
           if (isOwner && !ownerExpiredRef.current) {
             ownerExpiredRef.current = true;
+
+            if (typeof navigator !== "undefined" && navigator.vibrate) {
+              navigator.vibrate([500, 200, 500]);
+            }
+
+            const stopAlarm = startAlarmSound();
+            alarmStopRef.current = stopAlarm;
+
+            setTimeout(() => {
+              alert(`Machine ${machine.id} Wash Complete!`);
+              stopAlarm();
+              alarmStopRef.current = null;
+            }, 80);
+
             toast.warning("Your wash is done! Please collect your clothes.", {
               duration: Infinity,
               id: `wash-done-${machine.id}`,
@@ -169,17 +218,25 @@ function MachineCard({ machine, userMachineCount }: { machine: Machine; userMach
           setIsTimeUp(false);
           setMsSinceExpiry(0);
           ownerExpiredRef.current = false;
+          alarmStopRef.current?.();
+          alarmStopRef.current = null;
         }
       };
 
       updateTimer();
       const interval = setInterval(updateTimer, 1000);
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        alarmStopRef.current?.();
+        alarmStopRef.current = null;
+      };
     } else {
       setTimeLeft(0);
       setIsTimeUp(false);
       setMsSinceExpiry(0);
       ownerExpiredRef.current = false;
+      alarmStopRef.current?.();
+      alarmStopRef.current = null;
     }
   }, [isInUse, machine.sessionEndTime, isOwner, machine.id]);
 
