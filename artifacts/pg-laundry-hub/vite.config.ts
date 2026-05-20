@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // 🎯 THIS FIXES THE BLANK SCREEN PATH ISSUE FOR GITHUB PAGES SUBFOLDERS
-  base: '/STONEROOF-LAUNDRY/'
-});
+  base: "/STONEROOF-LAUNDRY/"
+})
