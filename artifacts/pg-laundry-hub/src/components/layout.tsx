@@ -129,16 +129,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <span className="text-[10px] font-medium">Waiting Line</span>
           </Link>
-          <Link
-            href="/admin"
-            className={`flex flex-col items-center py-3 px-4 flex-1 transition-colors ${
-              location === "/admin" ? "text-primary" : "text-muted-foreground hover:text-foreground"
-            }`}
-            data-testid="nav-admin"
-          >
-            <ShieldCheck className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-medium">Admin</span>
-          </Link>
         </div>
       </nav>
     </div>

@@ -63,7 +63,17 @@ export function Dashboard() {
     );
   }
 
+  const { user } = useUserIdentity();
+
   const sortedMachines = machines?.slice().sort((a, b) => a.id - b.id) || [];
+
+  const userMachineCount = sortedMachines.filter(
+    (m) =>
+      m.status === "in_use" &&
+      user &&
+      m.currentUserName === user.name &&
+      m.currentUserRoom === user.room
+  ).length;
 
   return (
     <div className="space-y-6 pb-6">
@@ -84,6 +94,13 @@ export function Dashboard() {
         </div>
       )}
 
+      {userMachineCount >= 2 && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>You're already using <strong>2 machines</strong> — the maximum allowed per resident. Finish one before starting another.</span>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-bold tracking-tight">Machines</h2>
         <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -93,14 +110,14 @@ export function Dashboard() {
 
       <div className="space-y-4">
         {sortedMachines.map((m) => (
-          <MachineCard key={m.id} machine={m} />
+          <MachineCard key={m.id} machine={m} userMachineCount={userMachineCount} />
         ))}
       </div>
     </div>
   );
 }
 
-function MachineCard({ machine }: { machine: Machine }) {
+function MachineCard({ machine, userMachineCount }: { machine: Machine; userMachineCount: number }) {
   const queryClient = useQueryClient();
   const updateMachine = useUpdateMachine();
   const { user } = useUserIdentity();
@@ -363,9 +380,12 @@ function MachineCard({ machine }: { machine: Machine }) {
             <Button
               className="flex-1 font-semibold"
               onClick={() => setDrawerOpen(true)}
+              disabled={userMachineCount >= 2}
+              title={userMachineCount >= 2 ? "You're already using 2 machines" : undefined}
               data-testid={`button-start-wash-${machine.id}`}
             >
-              <Play className="w-4 h-4 mr-2" /> Start My Wash
+              <Play className="w-4 h-4 mr-2" />
+              {userMachineCount >= 2 ? "Limit Reached" : "Start My Wash"}
             </Button>
           )}
 
