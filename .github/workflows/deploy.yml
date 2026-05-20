@@ -35,11 +35,11 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
-      - name: Install Project Dependencies
+      - name: Install All Workspace Dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build Static App Production Files
-        run: pnpm --filter @workspace/pg-laundry-hub run build
+      - name: Build pg-laundry-hub App
+        run: cd artifacts/pg-laundry-hub && pnpm run build
 
       - name: Upload Build Artifacts
         uses: actions/upload-pages-artifact@v3
