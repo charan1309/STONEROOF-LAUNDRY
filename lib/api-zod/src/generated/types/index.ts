@@ -10,6 +10,8 @@ export * from './adminAction';
 export * from './adminActionResult';
 export * from './announcementInput';
 export * from './announcementResponse';
+export * from './complaint';
+export * from './complaintInput';
 export * from './healthStatus';
 export * from './machine';
 export * from './machineStatus';

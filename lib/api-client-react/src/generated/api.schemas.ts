@@ -97,3 +97,17 @@ export interface AdminActionResult {
   message: string;
 }
 
+export interface ComplaintInput {
+  userName: string;
+  userRoom: string;
+  message: string;
+}
+
+export interface Complaint {
+  id: number;
+  userName: string;
+  userRoom: string;
+  message: string;
+  createdAt: string;
+}
+

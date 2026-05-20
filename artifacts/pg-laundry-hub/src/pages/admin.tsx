@@ -7,10 +7,14 @@ import {
   useGetAnnouncement,
   useGetMachines,
   useGetQueue,
+  useGetComplaints,
+  useDeleteComplaint,
+  useClearAllComplaints,
   getGetMachinesQueryKey,
   getGetMachinesSummaryQueryKey,
   getGetQueueQueryKey,
   getGetAnnouncementQueryKey,
+  getGetComplaintsQueryKey,
 } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +33,8 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
+  MessageSquare,
+  Inbox,
 } from "lucide-react";
 
 const ADMIN_STORAGE_KEY = "pg_laundry_admin_session";
@@ -45,6 +51,17 @@ function clearAdminSession() {
   localStorage.removeItem(ADMIN_STORAGE_KEY);
 }
 
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 export function Admin() {
   const savedCode = getAdminSession();
   const [isAuthenticated, setIsAuthenticated] = useState(!!savedCode);
@@ -58,10 +75,15 @@ export function Admin() {
   const { data: announcement } = useGetAnnouncement({ query: { refetchInterval: 15000 } });
   const { data: machines } = useGetMachines({ query: { refetchInterval: 10000 } });
   const { data: queue } = useGetQueue({ query: { refetchInterval: 10000 } });
+  const { data: complaints, isLoading: complaintsLoading } = useGetComplaints({
+    query: { refetchInterval: 15000, enabled: isAuthenticated },
+  });
 
   const setAnnouncement = useSetAnnouncement();
   const resetMachines = useAdminResetMachines();
   const clearQueue = useAdminClearQueue();
+  const deleteComplaint = useDeleteComplaint();
+  const clearAllComplaints = useClearAllComplaints();
 
   const [announcementText, setAnnouncementText] = useState("");
 
@@ -70,6 +92,10 @@ export function Admin() {
     queryClient.invalidateQueries({ queryKey: getGetMachinesSummaryQueryKey() });
     queryClient.invalidateQueries({ queryKey: getGetQueueQueryKey() });
     queryClient.invalidateQueries({ queryKey: getGetAnnouncementQueryKey() });
+  };
+
+  const invalidateComplaints = () => {
+    queryClient.invalidateQueries({ queryKey: getGetComplaintsQueryKey() });
   };
 
   const handleLogin = () => {
@@ -152,6 +178,33 @@ export function Admin() {
     );
   };
 
+  const handleDeleteComplaint = (id: number) => {
+    deleteComplaint.mutate(
+      { id, data: { adminCode } },
+      {
+        onSuccess: () => {
+          toast.success("Complaint dismissed.");
+          invalidateComplaints();
+        },
+        onError: () => toast.error("Failed to dismiss complaint."),
+      }
+    );
+  };
+
+  const handleClearAllComplaints = () => {
+    if (!complaints?.length) return;
+    clearAllComplaints.mutate(
+      { data: { adminCode } },
+      {
+        onSuccess: () => {
+          toast.success("All complaints cleared.");
+          invalidateComplaints();
+        },
+        onError: () => toast.error("Failed to clear complaints."),
+      }
+    );
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] pb-6">
@@ -212,6 +265,7 @@ export function Admin() {
   const inUseCount = machines?.filter((m) => m.status === "in_use").length ?? 0;
   const brokenCount = machines?.filter((m) => m.status === "broken").length ?? 0;
   const queueCount = queue?.length ?? 0;
+  const complaintCount = complaints?.length ?? 0;
   const activeAnnouncement = announcement?.isActive ? announcement.message : null;
 
   return (
@@ -230,7 +284,7 @@ export function Admin() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <Card className="p-3 flex flex-col items-center justify-center text-center">
           <WashingMachine className="w-4 h-4 text-amber-500 mb-1" />
           <span className="text-xl font-bold font-mono">{inUseCount}</span>
@@ -245,6 +299,14 @@ export function Admin() {
           <Users className="w-4 h-4 text-blue-500 mb-1" />
           <span className="text-xl font-bold font-mono">{queueCount}</span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">In Queue</span>
+        </Card>
+        <Card className="p-3 flex flex-col items-center justify-center text-center relative">
+          <MessageSquare className="w-4 h-4 text-orange-500 mb-1" />
+          <span className="text-xl font-bold font-mono">{complaintCount}</span>
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Complaints</span>
+          {complaintCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          )}
         </Card>
       </div>
 
@@ -330,6 +392,74 @@ export function Admin() {
           <Trash2 className="w-4 h-4 mr-2" />
           {clearQueue.isPending ? "Clearing..." : "Clear Waiting Queue"}
         </Button>
+      </Card>
+
+      <Card className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-base flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-orange-500 shrink-0" />
+            Resident Complaints
+            {complaintCount > 0 && (
+              <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">
+                {complaintCount} new
+              </Badge>
+            )}
+          </h3>
+          {complaintCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground hover:text-destructive px-2"
+              onClick={handleClearAllComplaints}
+              disabled={clearAllComplaints.isPending}
+              data-testid="button-clear-all-complaints"
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              Clear all
+            </Button>
+          )}
+        </div>
+
+        {complaintsLoading && (
+          <p className="text-xs text-muted-foreground text-center py-4">Loading complaints…</p>
+        )}
+
+        {!complaintsLoading && complaintCount === 0 && (
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
+            <Inbox className="w-8 h-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">No complaints yet. All good!</p>
+          </div>
+        )}
+
+        {!complaintsLoading && complaints && complaints.length > 0 && (
+          <div className="space-y-3">
+            {complaints.map((c) => (
+              <div
+                key={c.id}
+                className="rounded-lg border bg-muted/30 p-3 space-y-1.5"
+                data-testid={`complaint-${c.id}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold">{c.userName}</span>
+                    <span className="text-xs text-muted-foreground">Rm {c.userRoom}</span>
+                    <span className="text-[10px] text-muted-foreground">· {formatDate(c.createdAt)}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteComplaint(c.id)}
+                    disabled={deleteComplaint.isPending}
+                    className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                    title="Dismiss complaint"
+                    data-testid={`button-dismiss-complaint-${c.id}`}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed">{c.message}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );

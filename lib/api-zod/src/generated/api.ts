@@ -165,3 +165,56 @@ export const AdminClearQueueResponse = zod.object({
 })
 
 
+/**
+ * @summary Submit a resident complaint
+ */
+export const SubmitComplaintBody = zod.object({
+  "userName": zod.string(),
+  "userRoom": zod.string(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get all complaints (admin only)
+ */
+export const GetComplaintsResponseItem = zod.object({
+  "id": zod.number(),
+  "userName": zod.string(),
+  "userRoom": zod.string(),
+  "message": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetComplaintsResponse = zod.array(GetComplaintsResponseItem)
+
+
+/**
+ * @summary Clear all complaints
+ */
+export const ClearAllComplaintsBody = zod.object({
+  "adminCode": zod.string()
+})
+
+export const ClearAllComplaintsResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Delete a single complaint
+ */
+export const DeleteComplaintParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteComplaintBody = zod.object({
+  "adminCode": zod.string()
+})
+
+export const DeleteComplaintResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+

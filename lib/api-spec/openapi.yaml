@@ -18,6 +18,8 @@ tags:
     description: Maintenance announcement banner
   - name: admin
     description: Admin operations
+  - name: complaints
+    description: Resident complaints
 paths:
   /healthz:
     get:
@@ -236,6 +238,92 @@ paths:
         "403":
           description: Forbidden
 
+  /complaints:
+    post:
+      operationId: submitComplaint
+      tags: [complaints]
+      summary: Submit a resident complaint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintInput"
+      responses:
+        "201":
+          description: Complaint submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+        "400":
+          description: Bad request
+
+  /admin/complaints:
+    get:
+      operationId: getComplaints
+      tags: [complaints]
+      summary: Get all complaints (admin only)
+      responses:
+        "200":
+          description: List of complaints newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Complaint"
+
+  /admin/complaints/clear-all:
+    post:
+      operationId: clearAllComplaints
+      tags: [complaints]
+      summary: Clear all complaints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAction"
+      responses:
+        "200":
+          description: All complaints cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminActionResult"
+        "403":
+          description: Forbidden
+
+  /admin/complaints/{id}:
+    delete:
+      operationId: deleteComplaint
+      tags: [complaints]
+      summary: Delete a single complaint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAction"
+      responses:
+        "200":
+          description: Complaint deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminActionResult"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -350,4 +438,30 @@ components:
         success:
           type: boolean
         message:
+          type: string
+
+    ComplaintInput:
+      type: object
+      required: [userName, userRoom, message]
+      properties:
+        userName:
+          type: string
+        userRoom:
+          type: string
+        message:
+          type: string
+
+    Complaint:
+      type: object
+      required: [id, userName, userRoom, message, createdAt]
+      properties:
+        id:
+          type: integer
+        userName:
+          type: string
+        userRoom:
+          type: string
+        message:
+          type: string
+        createdAt:
           type: string
