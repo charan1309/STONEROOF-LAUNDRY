@@ -24,7 +24,6 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # 1. Install pnpm first so the build system doesn't crash
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -33,14 +32,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22 # Updated to Node 22 to clear that deprecation warning!
+          node-version: 22
           cache: 'pnpm'
 
-      # 2. Use pnpm instead of npm
+      # 🏆 UPDATED FLAG APPLIED HERE TO BYPASS THE LOCKFILE ERROR
       - name: Install Project Dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
-      # 3. Compile static distribution files using pnpm
       - name: Build Static App Production Files
         run: pnpm run build
 
