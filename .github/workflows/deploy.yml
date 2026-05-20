@@ -24,16 +24,25 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      # 1. Install pnpm first so the build system doesn't crash
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22 # Updated to Node 22 to clear that deprecation warning!
+          cache: 'pnpm'
 
+      # 2. Use pnpm instead of npm
       - name: Install Project Dependencies
-        run: npm install
+        run: pnpm install
 
+      # 3. Compile static distribution files using pnpm
       - name: Build Static App Production Files
-        run: npm run build
+        run: pnpm run build
 
       - name: Upload Build Artifacts
         uses: actions/upload-pages-artifact@v3
