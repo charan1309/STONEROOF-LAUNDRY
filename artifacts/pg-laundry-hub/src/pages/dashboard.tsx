@@ -86,6 +86,7 @@ function removeClearedAlert(machineId: number) {
 export function Dashboard() {
   const { data: machines, isLoading } = useGetMachines({ query: { refetchInterval: 10000 } });
   const { data: summary } = useGetMachinesSummary({ query: { refetchInterval: 10000 } });
+  const { user } = useUserIdentity();
 
   if (isLoading) {
     return (
@@ -96,8 +97,6 @@ export function Dashboard() {
       </div>
     );
   }
-
-  const { user } = useUserIdentity();
 
   const sortedMachines = machines?.slice().sort((a, b) => a.id - b.id) || [];
 
