@@ -91,7 +91,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b">
         <div className="px-4 h-14 flex items-center justify-between max-w-md mx-auto w-full">
-          <div className="font-bold text-lg tracking-tight">PG Laundry Hub</div>
+          <div className="font-bold text-lg tracking-tight">STONEROOF LAUNDRY HUB</div>
           <div className="bg-muted px-3 py-1 rounded-full text-xs font-medium text-muted-foreground shadow-sm">
             {user.name} &middot; Rm {user.room}
           </div>
@@ -159,7 +159,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b">
         <div className="px-4 h-14 flex items-center justify-between max-w-md mx-auto w-full">
-          <div className="font-bold text-lg tracking-tight">PG Laundry Hub</div>
+          <div className="font-bold text-lg tracking-tight">STONEROOF LAUNDRY HUB</div>
           <Link
             href="/"
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"

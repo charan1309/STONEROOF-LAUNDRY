@@ -436,18 +436,6 @@ function MachineCard({ machine, userMachineCount }: { machine: Machine; userMach
     );
   };
 
-  const handleFixMachine = () => {
-    updateMachine.mutate(
-      { id: machine.id, data: { status: "available" } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetMachinesQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetMachinesSummaryQueryKey() });
-        },
-      }
-    );
-  };
-
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const m = Math.floor(totalSeconds / 60);
@@ -612,7 +600,7 @@ function MachineCard({ machine, userMachineCount }: { machine: Machine; userMach
             </div>
           )}
 
-          {!isBroken ? (
+          {!isBroken && (
             <Button
               variant="ghost"
               size="sm"
@@ -622,15 +610,13 @@ function MachineCard({ machine, userMachineCount }: { machine: Machine; userMach
             >
               <AlertCircle className="w-4 h-4 mr-1" /> Report
             </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="flex-1 border-gray-300"
-              onClick={handleFixMachine}
-              data-testid={`button-fix-machine-${machine.id}`}
-            >
-              <Wrench className="w-4 h-4 mr-2" /> Fix Machine
-            </Button>
+          )}
+
+          {isBroken && (
+            <div className="flex-1 flex items-center gap-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+              <Wrench className="w-3.5 h-3.5 shrink-0" />
+              Out of order — contact admin to fix
+            </div>
           )}
         </div>
       </div>
